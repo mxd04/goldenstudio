@@ -245,7 +245,7 @@ export default function ClothingSection() {
                           <Phone size={18} />
                           <span>{phoneNumber}</span>
                         </div>
-                        <span className="text-xs text-white/40 uppercase tracking-wider font-semibold group-hover:text-white/80">Apasă pentru copiere</span>
+                        <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold group-hover:text-white/80">Apasă pentru copiere</span>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -277,7 +277,7 @@ export default function ClothingSection() {
             <Link href="https://www.google.com/maps/dir//Golden+Studio,+Strada+Nicolae+Iorga+52,+550361+Sibiu/@45.7799987,24.1562433,17z/data=!4m8!4m7!1m0!1m5!1m1!1s0x474c5dcb4351d831:0xc14a499e9b45477f!2m2!1d24.1573543!2d45.7811232?entry=ttu&g_ep=EgoyMDI2MDUxNy4wIKXMDSoASAFQAw%3D%3D" target="_blank" className="w-full max-w-xs cursor-pointer">
               <button 
                 className="
-                  w-full px-6 py-4 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-white/10 text-white font-semibold text-[15px]
+                  w-full px-6 py-4 rounded-2xl bg-white/[0.03] backdrop-blur-md text-white font-semibold text-[15px]
                   flex items-center justify-center gap-3 hover:bg-white hover:text-black hover:scale-[1.02] active:scale-[0.99] transition-all duration-300
                   shadow-[0_10px_30px_rgba(0,0,0,0.2)] cursor-pointer
                 "
