@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import LoadingScreen from "@/components/loading-screen"
 import SmoothScrollProvider from "@/components/smooth-scroll-provider"
 import Navbar from "@/components/navbar"
 import HeroSection from "@/components/hero-section"

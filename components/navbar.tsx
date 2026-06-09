@@ -94,7 +94,7 @@ const FloatingNavbar = () => {
           {/* BUTON LOCATIE - Redimensionat la 48px pe mobile + Sweep Light */}
           <motion.button 
             whileHover="hover"
-            onClick={() => window.open("https://www.google.com/maps/dir/45.7703424,24.1631232/45.7806845,24.1568355/@45.780354,24.1565915,18.25z/data=!4m5!4m4!1m1!4e1!1m0!3e0?entry=ttu&g_ep=EgoyMDI2MDUxNy4wIKXMDSoASAFQAw%3D%3D", "_blank")} 
+            onClick={() => window.open("https://www.google.com/maps/dir//Golden+Studio,+Strada+Nicolae+Iorga+52,+550361+Sibiu/@45.7809652,24.1565515,18.25z/data=!4m17!1m7!3m6!1s0x474c5dcb4351d831:0xc14a499e9b45477f!2sGolden+Studio!8m2!3d45.7811232!4d24.1573543!16s%2Fg%2F11y3sg3bcr!4m8!1m0!1m5!1m1!1s0x474c5dcb4351d831:0xc14a499e9b45477f!2m2!1d24.1573543!2d45.7811232!3e0?entry=ttu&g_ep=EgoyMDI2MDYwMy4xIKXMDSoASAFQAw%3D%3D", "_blank")} 
             className="relative overflow-hidden w-[48px] h-[48px] md:w-[62px] md:h-[62px] rounded-[16px] md:rounded-[24px] bg-black/10 backdrop-blur-xl flex items-center justify-center text-white cursor-pointer active:scale-[0.97] transition-transform"
           >
             <SweepLight />
