@@ -521,7 +521,7 @@ export default function HaircutsSection() {
           {/* LEFT */}
           <div className="flex flex-col gap-6">
             <MagicBentoCard className="h-[260px] rounded-[32px] transition-transform duration-500 hover:scale-105 magic-bento-card--border-glow">
-              <img src="/side.jpg" alt="" className="w-full h-full object-cover pointer-events-none relative z-10" />
+              <img src="/side.JPG" alt="" className="w-full h-full object-cover pointer-events-none relative z-10" />
             </MagicBentoCard>
             <MagicBentoCard className="h-[340px] rounded-[32px] transition-transform duration-500 hover:scale-105 magic-bento-card--border-glow">
               <img src="/3.jpg" alt="" className="w-full h-full object-cover pointer-events-none relative z-10" />
@@ -531,7 +531,7 @@ export default function HaircutsSection() {
           {/* CENTER HERO */}
           <div className="md:col-span-2">
             <MagicBentoCard className="relative h-[620px] rounded-[42px] transition-transform duration-500 hover:scale-105 magic-bento-card--border-glow">
-              <img src="/desprenoi.jpg" alt="" className="w-full h-full object-cover pointer-events-none relative z-10" />
+              <img src="/desprenoi.JPG" alt="" className="w-full h-full object-cover pointer-events-none relative z-10" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none z-20" />
               <div className="absolute bottom-[-100px] left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-[#BDB214]/20 blur-[120px] pointer-events-none z-20" />
             </MagicBentoCard>
@@ -540,7 +540,7 @@ export default function HaircutsSection() {
           {/* RIGHT */}
           <div className="flex flex-col gap-6">
             <MagicBentoCard className="h-[340px] rounded-[32px] transition-transform duration-500 hover:scale-105 magic-bento-card--border-glow">
-              <img src="/4.jpg" alt="" className="w-full h-full object-cover pointer-events-none relative z-10" />
+              <img src="/4.JPG" alt="" className="w-full h-full object-cover pointer-events-none relative z-10" />
             </MagicBentoCard>
             <MagicBentoCard className="h-[260px] rounded-[32px] transition-transform duration-500 hover:scale-105 magic-bento-card--border-glow">
               <img src="/5.jpg" alt="" className="w-full h-full object-cover pointer-events-none relative z-10" />
