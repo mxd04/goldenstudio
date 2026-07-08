@@ -1,16 +1,10 @@
 "use client"
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, VideoHTMLAttributes } from 'react';
 
-interface OptimizedVideoProps {
+interface OptimizedVideoProps extends Omit<VideoHTMLAttributes<HTMLVideoElement>, 'ref'> {
   src: string;
-  className?: string;
-  autoPlay?: boolean;
-  loop?: boolean;
-  muted?: boolean;
-  playsInline?: boolean;
   preset?: 'low' | 'medium' | 'high';
-  onLoadedData?: () => void;
 }
 
 /**
@@ -18,22 +12,15 @@ interface OptimizedVideoProps {
  * - Lazy loading via Intersection Observer
  * - Mobile performance optimization
  * - Preload control
- * - Automatic format selection
  */
 export const OptimizedVideo = React.forwardRef<HTMLVideoElement, OptimizedVideoProps>(
   ({
     src,
-    className = '',
-    autoPlay = false,
-    loop = false,
-    muted = true,
-    playsInline = true,
     preset = 'medium',
-    onLoadedData,
+    ...videoProps
   }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isVisible, setIsVisible] = useState(false);
-    const [shouldPlay, setShouldPlay] = useState(autoPlay);
 
     // Combine refs
     React.useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement);
@@ -47,13 +34,9 @@ export const OptimizedVideo = React.forwardRef<HTMLVideoElement, OptimizedVideoP
         ([entry]) => {
           setIsVisible(entry.isIntersecting);
           
-          if (entry.isIntersecting) {
-            // Preload and potentially autoplay once visible
-            if (shouldPlay && video.paused) {
-              video.play().catch(err => console.debug('Autoplay prevented:', err));
-            }
-          } else if (!autoPlay && !video.paused) {
-            // Pause if not in view and autoPlay wasn't initially true
+          if (entry.isIntersecting && videoProps.autoPlay && video.paused) {
+            video.play().catch(err => console.debug('Autoplay prevented:', err));
+          } else if (!entry.isIntersecting && !videoProps.autoPlay && !video.paused) {
             video.pause();
           }
         },
@@ -65,51 +48,32 @@ export const OptimizedVideo = React.forwardRef<HTMLVideoElement, OptimizedVideoP
 
       observer.observe(video);
       return () => observer.unobserve(video);
-    }, [autoPlay, shouldPlay]);
+    }, [videoProps.autoPlay]);
 
     // Get performance preset settings
-    const getPresetSettings = () => {
+    const getPreloadValue = () => {
       switch (preset) {
         case 'low':
-          return {
-            preload: 'none' as const,
-            controlsList: 'nodownload',
-          };
+          return 'none';
         case 'medium':
-          return {
-            preload: 'metadata' as const,
-            controlsList: 'nodownload',
-          };
+          return 'metadata';
         case 'high':
-          return {
-            preload: 'auto' as const,
-            controlsList: 'nodownload',
-          };
+          return 'auto';
         default:
-          return {
-            preload: 'metadata' as const,
-            controlsList: 'nodownload',
-          };
+          return 'metadata';
       }
     };
-
-    const settings = getPresetSettings();
 
     return (
       <video
         ref={videoRef}
-        className={className}
-        autoPlay={autoPlay}
-        loop={loop}
-        muted={muted}
-        playsInline={playsInline}
-        preload={settings.preload}
-        controlsList={settings.controlsList}
-        onLoadedData={onLoadedData}
+        preload={getPreloadValue() as any}
+        {...videoProps}
         style={{
           willChange: 'transform',
           transformOrigin: 'center',
-        } as React.CSSProperties}
+          ...videoProps.style,
+        }}
       >
         <source src={src} type="video/mp4" />
         Your browser does not support the video tag.

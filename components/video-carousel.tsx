@@ -20,12 +20,12 @@ const videos = [
   "/7.mp4",
   "/15.mp4",
   "/11.mp4",
-  "/b.MOV",
-  "/c.MOV",
-  "/d.MOV",
-  "/e.MOV",
-  "/f.MOV",
-  "/g.mp4",
+  "/B.MOV",
+  "/C.MOV",
+  "/D.MOV",
+  "/E.MOV",
+  "/F.MOV",
+  "/G.mp4",
 ]
 
 const GLOW_COLOR = '237, 205, 127';
@@ -228,6 +228,30 @@ export default function HaircutsSection() {
   const [isEventDragging, setIsEventDragging] = useState(false)
   const [eventStartX, setEventStartX] = useState(0)
   const [eventScrollLeft, setEventScrollLeft] = useState(0)
+  const VideoWrapper = ({ src }: { src: string }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); }
+    }, { threshold: 0.1, rootMargin: '300px' });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="relative w-[280px] md:w-[360px] h-[480px] md:h-[620px] rounded-[38px] overflow-hidden border border-white/10 bg-zinc-900 transition-transform duration-500 hover:scale-[1.03]">
+      {isVisible && (
+        <OptimizedVideo 
+          src={src} autoPlay muted loop playsInline preset="low"
+          className="w-full h-full object-cover pointer-events-none" 
+        />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+    </div>
+  );
+};
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -638,22 +662,13 @@ export default function HaircutsSection() {
               {videos.map((video, idx) => {
                 const isNearby = Math.abs(idx - currentIndex) <= 2
                 return (
-                  <div key={idx} className="shrink-0">
-                    <div className="relative w-[280px] md:w-[360px] h-[480px] md:h-[620px] rounded-[38px] overflow-hidden border border-white/10 bg-zinc-900 transition-transform duration-500 hover:scale-[1.03]">
-                      {isNearby && (
-                        <OptimizedVideo 
-                          src={video}
-                          autoPlay 
-                          muted 
-                          loop 
-                          playsInline 
-                          preset="low"
-                          className="w-full h-full object-cover pointer-events-none" 
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-                    </div>
-                  </div>
+                  <div className="flex items-center gap-6 py-6">
+  {videos.map((video, idx) => (
+    <div key={idx} className="shrink-0">
+      <VideoWrapper src={video} />
+    </div>
+  ))}
+</div>
                 )
               })}
             </div>
