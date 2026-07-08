@@ -191,7 +191,7 @@ export default function WebsitesSection() {
         <div className="flex flex-col items-center text-center px-6 mb-24">
           <h2 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight max-w-[1050px]">
             Standardul excelenței, confirmat de peste <br />
-            <span className="shiny-text-effect">5.000 de exeperiente</span>.
+            <span className="shiny-text-effect">5.000 de experiente</span>.
           </h2>
         </div>
 
