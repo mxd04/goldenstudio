@@ -45,7 +45,12 @@ const reviews = [
 
 ];
 
-// --- CARDUL DE RECENZIE (Design Original) ---
+// Împărțim recenziile în 2 rânduri aproximativ egale
+const halfIndex = Math.ceil(reviews.length / 2);
+const reviewsRow1 = reviews.slice(0, halfIndex);
+const reviewsRow2 = reviews.slice(halfIndex);
+
+// --- CARDUL DE RECENZIE (Design Original, neschimbat) ---
 const ReviewCard = ({ review }: { review: any }) => (
   <div className="w-[350px] md:w-[400px] p-6 mx-4 bg-[#110d1a] border border-white/5 rounded-[24px] flex flex-col justify-between h-[210px] text-left select-none flex-shrink-0">
     <div>
@@ -63,56 +68,120 @@ const ReviewCard = ({ review }: { review: any }) => (
   </div>
 );
 
-export default function WebsitesSection() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
+interface MarqueeRowProps {
+  reviews: any[];
+  direction: 1 | -1; // 1 = mișcare spre stânga, -1 = mișcare spre dreapta
+  isActive: boolean; // controlat de vizibilitatea secțiunii în viewport
+}
+
+// --- RÂND DE CARUSEL CU MIȘCARE CONTINUĂ, OPRIRE LA APĂSARE ȘI INERȚIE LA SWIPE ---
+const MarqueeRow: React.FC<MarqueeRowProps> = ({ reviews, direction, isActive }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollPos = useRef(0);
-  const isDragging = useRef(false);
+  const isPressed = useRef(false); // true cât timp degetul/mouse-ul e apăsat pe rând - oprește mișcarea
   const startX = useRef(0);
+  const lastX = useRef(0);
+  const lastTime = useRef(0);
+  const velocity = useRef(0); // viteza swipe-ului (px/ms), folosită pentru inerție
+  const momentum = useRef(0); // viteza de inerție rămasă după eliberare, se stinge treptat
   const requestRef = useRef<number>(0);
 
-  useEffect(() => {
-    // Detect mobile
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const handlePressStart = (clientX: number) => {
+    isPressed.current = true;
+    momentum.current = 0;
+    velocity.current = 0;
+    startX.current = clientX - scrollPos.current;
+    lastX.current = clientX;
+    lastTime.current = performance.now();
+  };
 
-  const animate = () => {
-    // Don't animate on mobile to save battery
-    if (isMobile) {
-      requestRef.current = requestAnimationFrame(animate);
-      return;
-    }
+  const handlePressMove = (clientX: number) => {
+    if (!isPressed.current || !containerRef.current) return;
+    const now = performance.now();
+    const dt = now - lastTime.current;
+    scrollPos.current = clientX - startX.current;
+    if (dt > 0) velocity.current = (clientX - lastX.current) / dt; // px/ms
+    lastX.current = clientX;
+    lastTime.current = now;
+    containerRef.current.style.transform = `translate3d(${scrollPos.current}px, 0, 0)`;
+  };
 
-    if (!isDragging.current && containerRef.current && isVisible) {
-      scrollPos.current -= 0.65;
-      const maxScroll = containerRef.current.scrollWidth / 3;
-      if (Math.abs(scrollPos.current) >= maxScroll) scrollPos.current = 0;
-      containerRef.current.style.transform = `translate3d(${scrollPos.current}px, 0, 0)`;
-    }
-    requestRef.current = requestAnimationFrame(animate);
+  const handlePressEnd = () => {
+    if (!isPressed.current) return;
+    isPressed.current = false;
+    // Un swipe rapid lasă rândul să continue cu inerție proporțională cu viteza swipe-ului
+    momentum.current = velocity.current * 16; // aproximăm px/frame la ~60fps
   };
 
   useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setIsVisible(true);
-      else setIsVisible(false); // Stop animation when not visible
-    }, { threshold: 0.1 });
-    
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    requestRef.current = requestAnimationFrame(animate);
-    
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(requestRef.current);
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Rândul care merge spre dreapta pornește "cu o tură în urmă" ca să nu apară gol la margine
+    if (direction === -1) {
+      const maxScroll = container.scrollWidth / 3;
+      scrollPos.current = -maxScroll;
+      container.style.transform = `translate3d(${scrollPos.current}px, 0, 0)`;
+    }
+
+    const animate = () => {
+      if (container && !isPressed.current) {
+        if (Math.abs(momentum.current) > 0.1) {
+          // Fază de inerție după un swipe rapid - încetinește treptat
+          scrollPos.current += momentum.current;
+          momentum.current *= 0.95;
+        } else if (isActive) {
+          // Mișcare continuă, constantă, cât timp secțiunea e vizibilă
+          scrollPos.current -= 0.5 * direction;
+        }
+
+        const maxScroll = container.scrollWidth / 3;
+        // Păstrăm scrollPos într-o fereastră continuă (-maxScroll, 0], indiferent de direcția
+        // în care a fost dus de inerție, pentru o buclă perfect continuă (fără sărituri vizibile)
+        if (scrollPos.current > 0) scrollPos.current -= maxScroll;
+        if (scrollPos.current <= -maxScroll) scrollPos.current += maxScroll;
+
+        container.style.transform = `translate3d(${scrollPos.current}px, 0, 0)`;
+      }
+      requestRef.current = requestAnimationFrame(animate);
     };
-  }, [isMobile, isVisible]);
+
+    requestRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [isActive, direction]);
+
+  return (
+    <div
+      className="flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)] py-3 cursor-grab active:cursor-grabbing"
+      onMouseDown={(e) => handlePressStart(e.clientX)}
+      onMouseMove={(e) => handlePressMove(e.clientX)}
+      onMouseUp={handlePressEnd}
+      onMouseLeave={handlePressEnd}
+      onTouchStart={(e) => handlePressStart(e.touches[0].clientX)}
+      onTouchMove={(e) => handlePressMove(e.touches[0].clientX)}
+      onTouchEnd={handlePressEnd}
+    >
+      <div ref={containerRef} className="flex will-change-transform items-stretch">
+        {[...reviews, ...reviews, ...reviews].map((review, i) => (
+          <ReviewCard key={i} review={review} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default function WebsitesSection() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsVisible(entry.isIntersecting);
+    }, { threshold: 0.1 });
+
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <section id="reviews-section" ref={sectionRef} className="relative w-full bg-[#0a0a0a] py-28 overflow-hidden border-t border-white/5">
@@ -126,29 +195,9 @@ export default function WebsitesSection() {
           </h2>
         </div>
 
-        <div 
-          className="flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)] py-6 cursor-grab active:cursor-grabbing"
-          onMouseDown={(e) => { isDragging.current = true; startX.current = e.clientX - scrollPos.current; }}
-          onMouseMove={(e) => { 
-            if (!isDragging.current || !containerRef.current) return;
-            scrollPos.current = e.clientX - startX.current;
-            containerRef.current.style.transform = `translate3d(${scrollPos.current}px, 0, 0)`;
-          }}
-          onMouseUp={() => isDragging.current = false}
-          onMouseLeave={() => isDragging.current = false}
-          onTouchStart={(e) => { isDragging.current = true; startX.current = e.touches[0].clientX - scrollPos.current; }}
-          onTouchMove={(e) => {
-            if (!isDragging.current || !containerRef.current) return;
-            scrollPos.current = e.touches[0].clientX - startX.current;
-            containerRef.current.style.transform = `translate3d(${scrollPos.current}px, 0, 0)`;
-          }}
-          onTouchEnd={() => isDragging.current = false}
-        >
-          <div ref={containerRef} className="flex will-change-transform items-stretch">
-            {[...reviews, ...reviews, ...reviews].map((review, i) => (
-              <ReviewCard key={i} review={review} />
-            ))}
-          </div>
+        <div className="flex flex-col gap-4">
+          <MarqueeRow reviews={reviewsRow1} direction={1} isActive={isVisible} />
+          <MarqueeRow reviews={reviewsRow2} direction={-1} isActive={isVisible} />
         </div>
       </div>
     </section>
