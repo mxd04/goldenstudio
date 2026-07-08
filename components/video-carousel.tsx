@@ -228,30 +228,10 @@ export default function HaircutsSection() {
   const [isEventDragging, setIsEventDragging] = useState(false)
   const [eventStartX, setEventStartX] = useState(0)
   const [eventScrollLeft, setEventScrollLeft] = useState(0)
-  const VideoWrapper = ({ src }: { src: string }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); }
-    }, { threshold: 0.1, rootMargin: '300px' });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={ref} className="relative w-[280px] md:w-[360px] h-[480px] md:h-[620px] rounded-[38px] overflow-hidden border border-white/10 bg-zinc-900 transition-transform duration-500 hover:scale-[1.03]">
-      {isVisible && (
-        <OptimizedVideo 
-          src={src} autoPlay muted loop playsInline preset="low"
-          className="w-full h-full object-cover pointer-events-none" 
-        />
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-    </div>
-  );
-};
+  // Toate video-urile se încarcă din start, ca să nu mai existe niciun card gol la swipe.
+  const [loadedIndices] = useState<Set<number>>(() => new Set(videos.map((_, idx) => idx)))
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -371,10 +351,35 @@ export default function HaircutsSection() {
 
   const isMobile = windowWidth > 0 && windowWidth < 768
 
+  // Actualizează currentIndex pe baza scroll-ului real al containerului.
+  // Asta acoperă și swipe-ul nativ pe mobil (touch), nu doar butoanele/drag-ul cu mouse-ul.
+  useEffect(() => {
+    const container = carouselRef.current
+    if (!container) return
+
+    let rafId: number | null = null
+
+    const handleScroll = () => {
+      if (rafId !== null) return
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        const itemWidth = isMobile ? 304 : 384
+        const newIndex = Math.round(container.scrollLeft / itemWidth)
+        setCurrentIndex(prev => (prev !== newIndex ? newIndex : prev))
+      })
+    }
+
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      container.removeEventListener('scroll', handleScroll)
+      if (rafId !== null) cancelAnimationFrame(rafId)
+    }
+  }, [isMobile])
+
   const scrollToVideoIndex = useCallback((index: number) => {
     if (!carouselRef.current) return
     const container = carouselRef.current
-    const itemWidth = isMobile ? 280 : 384
+    const itemWidth = isMobile ? 304 : 384
     const targetScroll = index * itemWidth
     const currentScroll = container.scrollLeft
     const distance = targetScroll - currentScroll
@@ -423,7 +428,7 @@ export default function HaircutsSection() {
     const walk = (x - eventStartX) * 2;
     if (carouselRef.current) {
       carouselRef.current.scrollLeft = eventScrollLeft - walk;
-      const itemWidth = isMobile ? 280 : 384
+      const itemWidth = isMobile ? 304 : 384
       const newIndex = Math.round(carouselRef.current.scrollLeft / itemWidth)
       setCurrentIndex(newIndex)
     }
@@ -656,24 +661,46 @@ export default function HaircutsSection() {
             onMouseMove={handleEventMouseMove}
             onMouseUp={stopEventDragging}
             onMouseLeave={stopEventDragging}
-            className="relative w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden select-none cursor-grab active:cursor-grabbing"
+            className="relative w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden select-none cursor-grab active:cursor-grabbing snap-x snap-mandatory scroll-smooth"
           >
             <div className="flex items-center gap-6 py-6">
               {videos.map((video, idx) => {
-                const isNearby = Math.abs(idx - currentIndex) <= 2
+                // Toate video-urile sunt încărcate din start (vezi loadedIndices mai sus),
+                // deci niciun card nu mai apare gol la swipe.
+                const isLoaded = loadedIndices.has(idx)
+
                 return (
-                  <div className="flex items-center gap-6 py-6">
-  {videos.map((video, idx) => (
-    <div key={idx} className="shrink-0">
-      <VideoWrapper src={video} />
-    </div>
-  ))}
-</div>
+                  <div
+                    key={idx}
+                    ref={el => { itemRefs.current[idx] = el }}
+                    data-idx={idx}
+                    className="shrink-0 snap-center"
+                  >
+                    <div className="relative w-[280px] md:w-[360px] h-[480px] md:h-[620px] rounded-[38px] overflow-hidden border border-white/10 bg-zinc-900 transition-transform duration-500 hover:scale-[1.03]">
+
+                      {isLoaded ? (
+                        <OptimizedVideo 
+                          src={video}
+                          autoPlay={idx === currentIndex} // Doar cel curent se joacă
+                          muted 
+                          loop 
+                          playsInline 
+                          preset="low"
+                          className="w-full h-full object-cover pointer-events-none" 
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-zinc-900" />
+                      )}
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+                    </div>
+                  </div>
                 )
               })}
             </div>
           </div>
         </div>
+
 
         {/* NAVIGATION */}
         <div className="flex items-center justify-center gap-3 mt-10">
