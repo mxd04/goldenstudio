@@ -685,7 +685,7 @@ export default function HaircutsSection() {
                           muted 
                           loop 
                           playsInline 
-                          preset="low"
+                          preset="high"
                           className="w-full h-full object-cover pointer-events-none" 
                         />
                       ) : (
