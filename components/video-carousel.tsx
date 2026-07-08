@@ -20,11 +20,11 @@ const videos = [
   "/7.mp4",
   "/15.mp4",
   "/11.mp4",
-  "/B.mp4",
-  "/C.mp4",
-  "/D.mp4",
-  "/E.mp4",
-  "/F.mp4",
+  "/B.MOV",
+  "/C.MOV",
+  "/D.MOV",
+  "/E.MOV",
+  "/F.MOV",
   "/G.mp4",
 ]
 
@@ -232,6 +232,41 @@ export default function HaircutsSection() {
   // Toate video-urile se încarcă din start, ca să nu mai existe niciun card gol la swipe.
   const [loadedIndices] = useState<Set<number>>(() => new Set(videos.map((_, idx) => idx)))
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  // Mobilul (în special iOS Safari) ignoră sau limitează foarte mult `preload="auto"`
+  // pentru <video>-urile care nu sunt încă vizibile pe ecran, ca să economisească date/baterie.
+  // Ca să ocolim asta, tragem manual bytes-ii fiecărui fișier cu fetch() (care NU e supus
+  // acestei restricții) și înlocuim src-ul cu un Blob local odată ce descărcarea s-a terminat.
+  const [preloadedSrc, setPreloadedSrc] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    let cancelled = false
+    const objectUrls: string[] = []
+
+    videos.forEach((src) => {
+      fetch(src)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`)
+          return res.blob()
+        })
+        .then(blob => {
+          if (cancelled) return
+          const objectUrl = URL.createObjectURL(blob)
+          objectUrls.push(objectUrl)
+          setPreloadedSrc(prev => ({ ...prev, [src]: objectUrl }))
+        })
+        .catch(err => {
+          // Dacă preload-ul manual eșuează (ex: offline), rămânem pe src-ul original -
+          // videoclipul tot funcționează, doar nu mai beneficiază de preload forțat.
+          console.debug('Nu am putut preîncărca video-ul:', src, err)
+        })
+    })
+
+    return () => {
+      cancelled = true
+      objectUrls.forEach(url => URL.revokeObjectURL(url))
+    }
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -680,7 +715,8 @@ export default function HaircutsSection() {
 
                       {isLoaded ? (
                         <OptimizedVideo 
-                          src={video}
+                          key={preloadedSrc[video] || video}
+                          src={preloadedSrc[video] || video}
                           autoPlay={idx === currentIndex} // Doar cel curent se joacă
                           muted 
                           loop 

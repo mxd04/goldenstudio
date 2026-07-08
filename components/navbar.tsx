@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback, useMemo } from "react"
+import React, { useState, useEffect } from "react"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { Phone, MapPin } from "lucide-react"
 
@@ -28,12 +28,10 @@ const FloatingNavbar = () => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Logica: Navbar-ul apare după ~120px-220px de scroll
   const opacity = useTransform(scrollY, [120, 220], [0, 1])
-  const y = useTransform(scrollY, [120, 220], isMobile ? [0, 0] : [-30, 0]) // Disable translate on mobile
-  const scale = useTransform(scrollY, [120, 220], isMobile ? [1, 1] : [0.92, 1]) // Disable scale on mobile
+  const y = useTransform(scrollY, [120, 220], isMobile ? [0, 0] : [-30, 0])
+  const scale = useTransform(scrollY, [120, 220], isMobile ? [1, 1] : [0.92, 1])
 
-  // Logica: Toast-ul apare doar când intri pe secțiunea de haircuts (o singură dată)
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -59,17 +57,14 @@ const FloatingNavbar = () => {
     >
       <div className="w-full max-w-7xl flex justify-between items-center">
         
-        {/* LOGO - O idee mai mare pe mobil (h-[48px]) */}
         <div className="pointer-events-auto">
           <div className="h-[48px] md:h-[72px] px-4 md:px-6 rounded-[16px] md:rounded-[28px] bg-black/10 backdrop-blur-xl flex items-center justify-center">
             <img src="/logo.png" alt="Logo" className="h-6 md:h-10 w-auto object-contain" />
           </div>
         </div>
 
-        {/* RIGHT ACTIONS */}
         <div className="relative flex items-center gap-2 md:gap-3 pointer-events-auto">
           
-          {/* TOAST MESSAGE - Bounce pe tot DIV-ul */}
           <div className="absolute top-[120%] right-0 z-[10000] pointer-events-none">
             <AnimatePresence>
               {showToast && (
@@ -91,17 +86,16 @@ const FloatingNavbar = () => {
             </AnimatePresence>
           </div>
 
-          {/* BUTON TELEFON - Redimensionat la 48px pe mobile + Sweep Light */}
-          <motion.button 
+          <motion.a 
+            href="tel:+40774948646"
+            target="_top"
             whileHover="hover"
-            onClick={() => window.location.href = "tel:+40774948646"} 
-            className="relative overflow-hidden w-[48px] h-[48px] md:w-[62px] md:h-[62px] rounded-[16px] md:rounded-[24px] bg-black/10 backdrop-blur-xl flex items-center justify-center text-white cursor-pointer  active:scale-[0.97] transition-transform"
+            className="relative overflow-hidden w-[48px] h-[48px] md:w-[62px] md:h-[62px] rounded-[16px] md:rounded-[24px] bg-black/10 backdrop-blur-xl flex items-center justify-center text-white cursor-pointer active:scale-[0.97] transition-transform"
           >
             <SweepLight />
             <Phone size={18} className="relative z-10" />
-          </motion.button>
+          </motion.a>
           
-          {/* BUTON LOCATIE - Redimensionat la 48px pe mobile + Sweep Light */}
           <motion.button 
             whileHover="hover"
             onClick={() => window.open("https://www.google.com/maps/dir//Golden+Studio,+Strada+Nicolae+Iorga+52,+550361+Sibiu/@45.7809652,24.1565515,18.25z/data=!4m17!1m7!3m6!1s0x474c5dcb4351d831:0xc14a499e9b45477f!2sGolden+Studio!8m2!3d45.7811232!4d24.1573543!16s%2Fg%2F11y3sg3bcr!4m8!1m0!1m5!1m1!1s0x474c5dcb4351d831:0xc14a499e9b45477f!2m2!1d24.1573543!2d45.7811232!3e0?entry=ttu&g_ep=EgoyMDI2MDYwMy4xIKXMDSoASAFQAw%3D%3D", "_blank")} 
@@ -111,7 +105,6 @@ const FloatingNavbar = () => {
             <MapPin size={18} className="relative z-10" />
           </motion.button>
           
-          {/* BUTON MERO - Culoarea Gold a proiectului, redimensionat la 48px pe mobile + Sweep Light */}
           <motion.button 
             whileHover="hover"
             onClick={() => window.open("https://mero.ro/p/golden-studio", "_blank")} 
@@ -122,9 +115,6 @@ const FloatingNavbar = () => {
           </motion.button>
         </div>
       </div>
-
-
-      
     </motion.div>
   )
 }
