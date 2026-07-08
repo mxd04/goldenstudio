@@ -59,15 +59,15 @@ const HeroSection = React.memo(({ onLoaded }: { onLoaded: () => void }) => {
             </div>
           </div>
 
-          <motion.button
+          <motion.a
             whileHover="hover"
-            onClick={() => window.open("tel:+40774948646", "_self")}
+            href="tel:+40774948646"
             className="relative cursor-pointer overflow-hidden bg-black/5 backdrop-blur-xl rounded-[2rem] p-8 flex flex-col items-center justify-center text-center hover:border-white/10 transition-all w-full h-[180px]"
           >
             <SweepLight />
             <span className="text-[#E1BC4C] text-[11px] font-bold uppercase tracking-[0.2em] mb-2">CONTACT</span>
             <h2 className="text-white text-[28px] md:text-[28px] font-semibold tracking-tight mt-1">0774 948 646</h2>
-          </motion.button>
+          </motion.a>
         </div>
 
         <motion.button 
