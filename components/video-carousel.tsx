@@ -20,11 +20,11 @@ const videos = [
   "/7.mp4",
   "/15.mp4",
   "/11.mp4",
-  "/B.MOV",
-  "/C.MOV",
-  "/D.MOV",
-  "/E.MOV",
-  "/F.MOV",
+  "/B.mp4",
+  "/C.mp4",
+  "/D.mp4",
+  "/E.mp4",
+  "/F.mp4",
   "/G.mp4",
 ]
 
